@@ -1,0 +1,7 @@
+Django==2.0.3
+django-reversion==2.0.13
+gunicorn==19.7.1
+psycopg2-binary==2.7.4
+django-minio-storage==0.2.0
+https://github.com/Exodus-Privacy/exodus-core/releases/download/v1.0.8/exodus_core-1.0.8.tar.gz
+djangorestframework==3.8.0

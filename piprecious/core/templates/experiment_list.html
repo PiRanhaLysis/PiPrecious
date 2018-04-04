@@ -1,0 +1,184 @@
+{% extends "base.html"%}
+{% block content %}
+    {% if experiments %}
+        <h1>Experiments</h1>
+        {% for e in experiments %}
+            <div class="row justify-content-md-center">
+                <div class="col-lg-12">
+                    <div class="alert bg-light">
+                        <h3><code>{{ e.name }}</code></h3>
+                        <div class="row">
+                            <div class="col-lg-3">
+                                <figure class="figure text-center">
+                                    <span class="text-secondary icon-huge fa fa-flask">
+                                    </span>
+                                    <figcaption class="figure-caption text-truncate">
+                                        <b class="text-primary">{{ e.name|truncatechars_html:20 }}</b>
+                                        <ul class="text-left">
+                                            <li class="">ID: <code class="small">{{e.pk}}</code></li>
+                                            <li class="">Creation: <code>{{ e.smartphone.created | date:"D d M Y" }}</code></li>
+                                        </ul>
+                                    </figcaption>
+                                </figure>
+                            </div>
+                            <div class="col-lg-3">
+                                <figure class="figure text-center">
+                                    <span class="text-secondary icon-huge fa fa-mobile">
+                                    </span>
+                                    <figcaption class="figure-caption text-truncate">
+                                        <b class="text-primary">{{ e.smartphone.name|truncatechars_html:20 }}</b>
+                                        <ul class="text-left">
+                                            <li class="">Serial: <code>{{ e.smartphone.serial }}</code></li>
+                                            <li class="">Brand: <code>{{ e.smartphone.brand }}</code></li>
+                                            <li class="">Creation: <code>{{ e.smartphone.created | date:"D d M Y" }}</code></li>
+                                        </ul>
+                                    </figcaption>
+                                </figure>
+                            </div>
+                            <div class="col-lg-3">
+                                <figure class="figure text-center">
+                                    <span class="text-secondary icon-huge fa fa-android">
+                                    </span>
+                                    <figcaption class="figure-caption text-truncate">
+                                        <b class="text-primary">{{ e.application.name|truncatechars_html:20 }}</b>
+                                        <ul class="text-left">
+                                            <li class="">Version: <code>{{ e.application.version_name }}</code></li>
+                                            <li class="">Size: <code>{{ e.application.apk.size|filesizeformat }}</code></li>
+                                            <li class="">Creation: <code>{{ e.application.created | date:"D d M Y" }}</code></li>
+                                        </ul>
+                                    </figcaption>
+                                    <p class="text-secondary fa fa-download"></p>
+                                </figure>
+                            </div>
+                            <div class="col-lg-3">
+                                <figure class="figure text-center">
+                                    {% if e.iot_device.name.strip %}
+                                        <span class="text-secondary icon-huge fa fa-bluetooth">
+                                        </span>
+                                        <figcaption class="figure-caption text-truncate">
+                                            <b class="text-primary">{{ e.iot_device.name|truncatechars_html:20 }}</b>
+                                            <ul class="text-left">
+                                                <li class="">Serial: <code>{{ e.iot_device.serial }}</code></li>
+                                                <li class="">Brand: <code>{{ e.iot_device.brand }}</code></li>
+                                                <li class="">Creation: <code>{{ e.iot_device.created | date:"D d M Y" }}</code></li>
+                                            </ul>
+                                        </figcaption>
+                                    {% else %}
+                                        <span class="text-secondary icon-huge fa fa-times">
+                                        </span>
+                                        <figcaption class="figure-caption text-truncate">
+                                            <b class="text-primary">No IoT device</b>
+                                        </figcaption>
+                                    {% endif %}
+                                </figure>
+                            </div>
+                        </div>
+                        {% if e.session_set.all %}
+                            <h4>
+                                <a class="btn text-secondary icon-small fa fa-arrow-down" data-toggle="collapse" href="#{{e.name}}" role="button" aria-expanded="false" aria-controls="{{e.name}}"></a>
+                                Sessions
+                            </h4>
+                            {% for s in e.session_set.all %}
+                            <div class="collapse multi-collapse" id="{{e.name}}">
+                                <hr>
+                                <div class="row">
+                                    <div class="col-lg-3">
+                                        <figure class="figure text-center">
+                                            <span class="text-secondary icon-normal fa fa-spinner">
+                                            </span>
+                                            <figcaption class="figure-caption text-truncate">
+                                                <b class="text-primary">{{ s.name|truncatechars_html:20 }}</b>
+                                                <ul class="text-left">
+                                                    <li class="">ID: <code class="small">{{s.pk}}</code></li>
+                                                    <li class="">Creation: <code>{{ s.created | date:"D d M Y" }}</code></li>
+                                                </ul>
+                                            </figcaption>
+                                        </figure>
+                                    </div>
+                                    <div class="col-lg-3">
+                                        <figure class="figure text-center">
+                                            {% if s.pcap_file.name.strip %}
+                                                <span class="text-secondary icon-normal fa fa-wifi">
+                                                </span>
+                                                <figcaption class="figure-caption text-truncate">
+                                                    <b class="text-primary">Full network dump</b>
+                                                    <ul class="text-left">
+                                                        <li class="">Size: <code>{{ s.pcap_file.size|filesizeformat }}</code></li>
+                                                        <li class="">SHA: <code>{{ s.pcap_file.sha256|truncatechars_html:20 }}</code></li>
+                                                        <li class="">Creation: <code>{{ s.pcap_file.created | date:"D d M Y" }}</code></li>
+                                                    </ul>
+                                                </figcaption>
+                                                <p class="text-secondary fa fa-download"></p>
+                                            {% else %}
+                                                <span class="text-secondary icon-normal fa fa-times">
+                                                </span>
+                                                <figcaption class="figure-caption text-truncate">
+                                                    <b class="text-primary">No full network dump</b>
+                                                </figcaption>
+                                            {% endif %}
+                                        </figure>
+                                    </div>
+                                    <div class="col-lg-3">
+                                        <figure class="figure text-center">
+                                            {% if s.flow_file.name.strip %}
+                                                <span class="text-secondary icon-normal fa fa-user-secret">
+                                                </span>
+                                                <figcaption class="figure-caption text-truncate">
+                                                    <b class="text-primary">MITM proxy dump</b>
+                                                    <ul class="text-left">
+                                                        <li class="">Size: <code>{{ s.flow_file.size|filesizeformat }}</code></li>
+                                                        <li class="">SHA: <code>{{ s.flow_file.sha256|truncatechars_html:20 }}</code></li>
+                                                        <li class="">Creation: <code>{{ s.flow_file.created | date:"D d M Y" }}</code></li>
+                                                    </ul>
+                                                </figcaption>
+                                                <p class="text-secondary fa fa-download"></p>
+                                            {% else %}
+                                                <span class="text-secondary icon-normal fa fa-times">
+                                                </span>
+                                                <figcaption class="figure-caption text-truncate">
+                                                    <b class="text-primary">No MITM proxy dump</b>
+                                                </figcaption>
+                                            {% endif %}
+                                        </figure>
+                                    </div>
+                                    <div class="col-lg-3">
+                                    <figure class="figure text-center">
+                                        {% if s.bluetooth_dump.name.strip %}
+                                            <span class="text-secondary icon-normal fa fa-bluetooth-b">
+                                            </span>
+                                            <figcaption class="figure-caption text-truncate">
+                                                <b class="text-primary">Bluetooth dump</b>
+                                                <ul class="text-left">
+                                                    <li class="">Size: <code>{{ s.flow_file.size|filesizeformat }}</code></li>
+                                                    <li class="">SHA: <code>{{ s.flow_file.sha256|truncatechars_html:20 }}</code></li>
+                                                    <li class="">Creation: <code>{{ s.flow_file.created | date:"D d M Y" }}</code></li>
+                                                </ul>
+                                            </figcaption>
+                                            <p class="text-secondary fa fa-download"></p>
+                                        {% else %}
+                                            <span class="text-secondary icon-normal fa fa-times">
+                                            </span>
+                                            <figcaption class="figure-caption text-truncate">
+                                                <b class="text-primary">No bluetooth dump</b>
+                                            </figcaption>
+                                        {% endif %}
+                                    </figure>
+                                </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        {% endfor %}
+    {% else %}
+        <div class="row justify-content-md-center">
+            <div class="col-lg-12">
+                <div class="alert bg-eror">
+                    <p>No experiments are available.</p>
+                </div>
+            </div>
+        </div>
+    {% endif %}
+{% endblock %}

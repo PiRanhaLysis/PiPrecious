@@ -1,0 +1,33 @@
+{% extends "base.html"%}
+{% block content %}
+    {% if applications %}
+        <h1>Applications</h1>
+        <div class="row">
+            {% for app in applications %}
+                <div class="col-6 col-md-3 col-lg-2">
+                    <figure class="figure text-center">
+                        <span class="text-secondary icon-huge fa fa-android">
+                        </span>
+                        <figcaption class="figure-caption text-truncate">
+                            <b class="text-primary">{{ app.name|truncatechars_html:20 }}</b>
+                            <ul class="text-left">
+                                <li class="">Version: <code>{{ app.version_name }}</code></li>
+                                <li class="">Size: <code>{{ app.apk.size|filesizeformat }}</code></li>
+                                <li class="">Creation: <code>{{ app.created | date:"D d M Y" }}</code></li>
+                                <!--<li class="">AUID: <code>{{ app.app_uid }}</code></li>-->
+                            </ul>
+                        </figcaption>
+                    </figure>
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="row justify-content-md-center">
+            <div class="col-lg-12">
+                <div class="alert bg-eror">
+                    <p>No applications are available.</p>
+                </div>
+            </div>
+        </div>
+    {% endif %}
+{% endblock %}
