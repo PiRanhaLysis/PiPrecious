@@ -1,0 +1,97 @@
+{% extends "base.html"%}
+{% block content %}
+    {% if session %}
+        <h1>Session details</h1>
+            <div class="row justify-content-md-center">
+                <div class="col-lg-12">
+                    <div class="alert bg-light">
+                        <h3><code>DNS</code></h3>
+                        <table class="table small table-sm table-hover">
+                            <thead>
+                                <tr>
+                                    <td>Domain</td>
+                                    <td>IP</td>
+                                    <td>Country</td>
+                                    <td>Region</td>
+                                    <td>City</td>
+                                    <td>Organization</td>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for na in session.networkanalysis_set.all %}
+                                    {% for s in na.dnsquery_set.all  %}
+                                        <tr>
+                                            <td>{{ s.domain }}</td>
+                                            <td><code>{{ s.address }}</code></td>
+                                            <td>{{ s.country }}</td>
+                                            <td>{{ s.region }}</td>
+                                            <td>{{ s.city }}</td>
+                                            <td>{{ s.organization }}</td>
+                                        </tr>
+                                    {% endfor %}
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            {% if har %}
+                <div class="row justify-content-md-center">
+                    <div class="col-lg-12">
+                        <div class="alert bg-light">
+                            <h3><code>HTTP/S</code></h3>
+                            <table class="table small table-sm table-hover">
+                                <thead>
+                                    <tr>
+                                        <td>Method</td>
+                                        <td>Status</td>
+                                        <td>URL</td>
+                                        <td>Request size</td>
+                                        <td>Response size</td>
+                                        <td>Response type</td>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for e in har.log.entries %}
+                                        <tr>
+                                            <td><a data-toggle="collapse" href="#{{forloop.counter}}" role="button" aria-expanded="false" aria-controls="{{forloop.counter}}"><strong><samp>{{ e.request.method }}</samp></strong></a></td>
+                                            <td>{{ e.response.status }}</td>
+                                            <td>{{ e.request.url|truncatechars_html:80 }}</td>
+                                            <td>{{ e.request.headersSize|add:e.request.bodySize|filesizeformat }}</td>
+                                            <td>{{ e.response.headersSize|add:e.response.bodySize|filesizeformat }}</td>
+                                            <td><samp>{{ e.response.content.mimeType }}</samp></td>
+                                        </tr>
+                                        <tr class="collapse child" id="{{forloop.counter}}">
+                                            <td></td>
+                                            <td></td>
+                                            <td class="card" colspan="4">
+                                                <div>
+                                                    <h4>Request</h4>
+                                                    <pre>{{e.request.postData.text.strip|safe}}</pre>
+                                                </div>
+                                                <div>
+                                                    <h4>Response</h4>
+                                                    <pre>{{e.response.content.text.strip|safe}}</pre>
+                                                </div>
+                                            </td>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            {% endif %}
+    {% else %}
+        <div class="row justify-content-md-center">
+            <div class="col-lg-12">
+                <div class="alert bg-eror">
+                    <p>No session are available.</p>
+                </div>
+            </div>
+        </div>
+    {% endif %}
+{% endblock %}

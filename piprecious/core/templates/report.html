@@ -1,0 +1,142 @@
+{% extends "base.html"%}
+{% block content %}
+    {% if experiment %}
+        <div class="row justify-content-md-center">
+            <div class="col-lg-12">
+                <div class="alert bg-light">
+                    <h3><code>{{ experiment.name }}</code></h3>
+                    <div class="row">
+                        <div class="col-lg-3">
+                            <figure class="figure text-center">
+                                <span class="text-secondary icon-huge fa fa-flask">
+                                </span>
+                                <figcaption class="figure-caption text-truncate">
+                                    <b class="text-primary">{{ experiment.name|truncatechars_html:20 }}</b>
+                                    <ul class="text-left">
+                                        <li class="">Creation: <code>{{ experiment.created | date:"D d M Y" }}</code></li>
+                                    </ul>
+                                </figcaption>
+                            </figure>
+                        </div>
+                        <div class="col-lg-3">
+                            <figure class="figure text-center">
+                                {% if experiment.smartphone.name.strip %}
+                                    <span class="text-secondary icon-huge fa fa-mobile">
+                                    </span>
+                                    <figcaption class="figure-caption text-truncate">
+                                        <b class="text-primary">{{ experiment.smartphone.name|truncatechars_html:20 }}</b>
+                                        <ul class="text-left">
+                                            <li class="">Brand: <code>{{ experiment.smartphone.brand }}</code></li>
+                                            <li class="">Creation: <code>{{ experiment.smartphone.created | date:"D d M Y" }}</code></li>
+                                        </ul>
+                                    </figcaption>
+                                {% else %}
+                                    <span class="text-secondary icon-huge fa fa-times">
+                                    </span>
+                                    <figcaption class="figure-caption text-truncate">
+                                        <b class="text-primary">No smartphone</b>
+                                    </figcaption>
+                                {% endif %}
+                            </figure>
+                        </div>
+                        <div class="col-lg-3">
+                            <figure class="figure text-center">
+                                {% if experiment.application.name.strip %}
+                                    <span class="text-secondary icon-huge fa fa-android">
+                                    </span>
+                                    <figcaption class="figure-caption text-truncate">
+                                        <b class="text-primary">{{ experiment.application.name|truncatechars_html:20 }}</b>
+                                        <ul class="text-left">
+                                            <li class="">Version: <code>{{ experiment.application.version_name }}</code></li>
+                                            <li class="">Size: <code>{{ experiment.application.apk.size|filesizeformat }}</code></li>
+                                            <li class="">Creation: <code>{{ experiment.application.created | date:"D d M Y" }}</code></li>
+                                        </ul>
+                                    </figcaption>
+                                    <a href="{% url 'core:api_apk_get' experiment.application.pk %}" class="text-secondary fa fa-download"></a>
+                                {% else %}
+                                    <span class="text-secondary icon-huge fa fa-times">
+                                    </span>
+                                    <figcaption class="figure-caption text-truncate">
+                                        <b class="text-primary">No application</b>
+                                    </figcaption>
+                                {% endif %}
+                            </figure>
+                        </div>
+                        <div class="col-lg-3">
+                            <figure class="figure text-center">
+                                {% if experiment.iot_device.name.strip %}
+                                    <span class="text-secondary icon-huge fa fa-bluetooth">
+                                    </span>
+                                    <figcaption class="figure-caption text-truncate">
+                                        <b class="text-primary">{{ experiment.iot_device.name|truncatechars_html:20 }}</b>
+                                        <ul class="text-left">
+                                            <li class="">Brand: <code>{{ experiment.iot_device.brand }}</code></li>
+                                            <li class="">Creation: <code>{{ experiment.iot_device.created | date:"D d M Y" }}</code></li>
+                                        </ul>
+                                    </figcaption>
+                                {% else %}
+                                    <span class="text-secondary icon-huge fa fa-times">
+                                    </span>
+                                    <figcaption class="figure-caption text-truncate">
+                                        <b class="text-primary">No IoT device</b>
+                                    </figcaption>
+                                {% endif %}
+                            </figure>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    {% endif %}
+    {% if report %}
+        <h1>Report</h1>
+        <div class="row justify-content-md-center">
+            <div class="col-lg-12">
+                <div class="alert bg-light">
+                    <table class="table small table-sm table-hover">
+                        <thead>
+                            <tr>
+                                <td>Domain</td>
+                                <td>IP</td>
+                                <td>Secure</td>
+                                <td>Leaked Data</td>
+                                <td>Country</td>
+                                <td>Region</td>
+                                <td>City</td>
+                                <td>Organization</td>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for d, v in report.items %}
+                                <tr>
+                                    <td><samp>{{ d }}</samp></td>
+                                    <td><code>{{ v.dns.ip }}</code></td>
+                                    <td>{{ v.secure }}</td>
+                                    <td>
+                                        <ul>
+                                            {% for m in v.data %}
+                                                <li>{{ m }}</li>
+                                            {% endfor %}
+                                        </ul>
+                                    </td>
+                                    <td>{{ v.dns.country }}</td>
+                                    <td>{{ v.dns.region }}</td>
+                                    <td>{{ v.dns.city }}</td>
+                                    <td>{{ v.dns.organization }}</td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    {% else %}
+        <div class="row justify-content-md-center">
+            <div class="col-lg-12">
+                <div class="alert bg-eror">
+                    <p>No report are available.</p>
+                </div>
+            </div>
+        </div>
+    {% endif %}
+{% endblock %}

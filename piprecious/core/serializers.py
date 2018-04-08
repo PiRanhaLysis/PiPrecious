@@ -7,6 +7,11 @@ class SmartphoneSerializer(serializers.ModelSerializer):
         model = Smartphone
         fields = '__all__'
 
+class IoTDeviceSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = IoTDevice
+        fields = '__all__'
+
 
 class ExperimentSerializer(serializers.ModelSerializer):
     class Meta:

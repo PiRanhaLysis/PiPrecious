@@ -1,16 +1,22 @@
+import mimetypes
+import pprint
+from concurrent.futures.thread import ThreadPoolExecutor
+
 from django.http.response import Http404, JsonResponse, HttpResponse
 from django.shortcuts import render
 from django.views.decorators.csrf import csrf_exempt
 from rest_framework.parsers import JSONParser
 
-from core.models import *
+from core.analysis.dns import analyze_dns
+from core.analysis.har import flow_to_har
+from core.analysis.main import compute_full_report
 from core.serializers import *
 
 
 def index(request):
     try:
         experiments = Experiment.objects.order_by('name')
-    except Experiment.DoesNotExist:
+    except Experiment.DoesNotExist as e:
         raise Http404("experiments does not exist")
     return render(request, 'experiment_list.html', {'experiments': experiments})
 
@@ -18,7 +24,7 @@ def index(request):
 def application_list(request):
     try:
         applications = Application.objects.order_by('name')
-    except Experiment.DoesNotExist:
+    except Experiment.DoesNotExist as e:
         raise Http404("applications does not exist")
     return render(request, 'application_list.html', {'applications': applications})
 
@@ -26,7 +32,7 @@ def application_list(request):
 def smartphone_list(request):
     try:
         smartphones = Smartphone.objects.order_by('name')
-    except Experiment.DoesNotExist:
+    except Experiment.DoesNotExist as e:
         raise Http404("smartphones does not exist")
     return render(request, 'smartphone_list.html', {'smartphones': smartphones})
 
@@ -34,28 +40,58 @@ def smartphone_list(request):
 def device_list(request):
     try:
         devices = IoTDevice.objects.order_by('name')
-    except Experiment.DoesNotExist:
+    except Experiment.DoesNotExist as e:
         raise Http404("devices does not exist")
     return render(request, 'device_list.html', {'devices': devices})
 
 
+def session_details(request, pk):
+    try:
+        session = Session.objects.get(pk = pk)
+        t = None
+        if session.flow_file is not None:
+            har = flow_to_har(session.flow_file.file)
+            t = namedtuple('GenericDict', har.keys())(**har)
+    except Exception as e:
+        raise Http404("session does not exist")
+    return render(request, 'session_details.html', {'session': session, 'har': t})
+
+
+def parse_raw_parameters(params):
+    lines = params.split('\n')
+    markers = {}
+    for l in lines:
+        print(l)
+        k = l.split('": "')[0].replace('"', '')
+        v = l.split('": "')[1].replace('"', '')
+        if len(v) > 5:
+            markers[k] = v
+    return markers
+
 @csrf_exempt
 def api_smartphone(request):
+    """
+    Register a new smartphone
+    :param request:
+    :return:
+    """
     if request.method == 'POST':
         data = JSONParser().parse(request)
-        serializer = SmartphoneSerializer(data=data)
+        serializer = SmartphoneSerializer(data = data)
         if serializer.is_valid():
-            serializer.save()
-            return JsonResponse(serializer.data, status=201)
-        return JsonResponse(serializer.errors, status=400)
+            s = serializer.save()
+            s.markers = parse_raw_parameters(s.raw_parameters)
+            s.save()
+            return JsonResponse(serializer.data, status = 201)
+        return JsonResponse(serializer.errors, status = 400)
 
 
 @csrf_exempt
 def api_experiment_get(request, pk):
     try:
-        snippet = Experiment.objects.get(pk=pk)
-    except Experiment.DoesNotExist:
-        return HttpResponse(status=404)
+        snippet = Experiment.objects.get(pk = pk)
+    except Experiment.DoesNotExist as e:
+        return JsonResponse({'error': str(e)}, status = 404)
 
     if request.method == 'GET':
         serializer = ExperimentSerializer(snippet)
@@ -65,9 +101,9 @@ def api_experiment_get(request, pk):
 @csrf_exempt
 def api_smartphone_get(request, pk):
     try:
-        snippet = Smartphone.objects.get(pk=pk)
-    except Smartphone.DoesNotExist:
-        return HttpResponse(status=404)
+        snippet = Smartphone.objects.get(pk = pk)
+    except Smartphone.DoesNotExist as e:
+        return JsonResponse({'error': str(e)}, status = 404)
 
     if request.method == 'GET':
         serializer = SmartphoneSerializer(snippet)
@@ -75,12 +111,209 @@ def api_smartphone_get(request, pk):
 
 
 @csrf_exempt
+def api_device_get(request, pk):
+    try:
+        snippet = IoTDevice.objects.get(pk = pk)
+    except IoTDevice.DoesNotExist as e:
+        return JsonResponse({'error': str(e)}, status = 404)
+
+    if request.method == 'GET':
+        serializer = IoTDeviceSerializer(snippet)
+        return JsonResponse(serializer.data)
+
+
+@csrf_exempt
 def api_application_get(request, pk):
     try:
-        snippet = Application.objects.get(pk=pk)
-    except Application.DoesNotExist:
-        return HttpResponse(status=404)
+        snippet = Application.objects.get(pk = pk)
+    except Application.DoesNotExist as e:
+        return JsonResponse({'error': str(e)}, status = 404)
 
     if request.method == 'GET':
         serializer = ApplicationSerializer(snippet)
         return JsonResponse(serializer.data)
+
+
+@csrf_exempt
+def api_apk_get(request, pk):
+    if request.method == 'GET':
+        try:
+            application = Application.objects.get(pk = pk)
+        except Application.DoesNotExist as e:
+            return JsonResponse({'error': str(e)}, status = 404)
+        try:
+            apk = APKFile.objects.get(pk = application.apk.pk)
+        except Application.DoesNotExist as e:
+            return JsonResponse({'error': str(e)}, status = 404)
+
+        with tempfile.NamedTemporaryFile() as apk_file:
+            file_size = 0
+            for chunk in apk.file.chunks():
+                apk_file.write(chunk)
+                file_size += len(chunk)
+            try:
+                apk_file.seek(0)
+                content_type = mimetypes.guess_type(str(apk.file))[0]
+                response = HttpResponse(apk_file.read(), content_type = content_type)
+                response['Content-Disposition'] = 'attachment; filename=%s.apk' % pk
+                response['Content-Length'] = file_size
+                return response
+            except Exception as e:
+                return JsonResponse({'error': str(e)}, status = 500)
+
+
+
+@csrf_exempt
+def api_flow(request, pk):
+    try:
+        session = Session.objects.get(pk = pk)
+    except Session.DoesNotExist as e:
+        return JsonResponse({'error': str(e)}, status = 404)
+
+    if request.method == 'POST' and request.FILES['file'] is not None:
+
+        # har = flow_to_har(session.flow_file.file)
+        # find_markers(har, Experiment.objects.get(session = session.pk))
+
+        if session.flow_file is not None:
+            return JsonResponse({'error': 'This session already has a flow file'}, status = 500)
+        try:
+            ff = FlowFile(name = pk, file = request.FILES['file'])
+            ff.save()
+            session.flow_file = ff
+            session.save()
+            # har = flow_to_har(session.flow_file)
+            # print(har)
+            # print(type(har))
+            # session.flow_file.json = har
+            # session.flow_file.save()
+            return JsonResponse({'mgs': 'success'}, status = 201)
+        except Exception as e:
+            return JsonResponse({'err': str(e)}, status = 500)
+
+    elif request.method == 'GET':
+        with tempfile.NamedTemporaryFile() as flow_file:
+            file_size = 0
+            for chunk in session.flow_file.file.chunks():
+                flow_file.write(chunk)
+                file_size += len(chunk)
+            try:
+                flow_file.seek(0)
+                content_type = mimetypes.guess_type(str(session.flow_file.file))[0]
+                response = HttpResponse(flow_file.read(), content_type = content_type)
+                response['Content-Disposition'] = 'attachment; filename=%s.flow' % pk
+                response['Content-Length'] = file_size
+                return response
+            except Exception as e:
+                return JsonResponse({'error': str(e)}, status = 500)
+
+
+@csrf_exempt
+def api_flow_har(request, pk):
+    try:
+        session = Session.objects.get(pk = pk)
+    except Session.DoesNotExist as e:
+        return JsonResponse({'error': str(e)}, status = 404)
+    if request.method == 'GET':
+        har = flow_to_har(session.flow_file.file)
+        try:
+            response = HttpResponse(json.dumps(har, indent = 2), content_type = 'application/json')
+            return response
+        except Exception as e:
+            return JsonResponse({'error': str(e)}, status = 500)
+
+
+@csrf_exempt
+def api_pcap(request, pk):
+    try:
+        session = Session.objects.get(pk = pk)
+    except Session.DoesNotExist as e:
+        return JsonResponse({'error': str(e)}, status = 404)
+    if request.method == 'POST' and request.FILES['file'] is not None:
+        if session.pcap_file is not None:
+            return JsonResponse({'error': 'This session already has a pcap file'}, status = 500)
+        try:
+            ff = PCAPFile(name = pk, file = request.FILES['file'])
+            ff.save()
+            session.pcap_file = ff
+            session.save()
+            with ThreadPoolExecutor(max_workers = 1) as e:
+                e.submit(analyze_dns, session.pk, True)
+            return JsonResponse({'mgs': 'success'}, status = 201)
+        except Exception as e:
+            print(e)
+            return JsonResponse({'err': str(e)}, status = 500)
+
+    elif request.method == 'GET':
+        with tempfile.NamedTemporaryFile() as pcap_file:
+            file_size = 0
+            for chunk in session.pcap_file.file.chunks():
+                pcap_file.write(chunk)
+                file_size += len(chunk)
+            try:
+                pcap_file.seek(0)
+                content_type = mimetypes.guess_type(str(session.pcap_file.file))[0]
+                response = HttpResponse(pcap_file.read(), content_type = content_type)
+                response['Content-Disposition'] = 'attachment; filename=%s.pcap' % pk
+                response['Content-Length'] = file_size
+                return response
+            except Exception as e:
+                return JsonResponse({'error': str(e)}, status = 500)
+
+
+@csrf_exempt
+def api_bt(request, pk):
+    try:
+        session = Session.objects.get(pk = pk)
+    except Session.DoesNotExist as e:
+        return JsonResponse({'error': str(e)}, status = 404)
+    if request.method == 'POST' and request.FILES['file'] is not None:
+        if session.bluetooth_dump is not None:
+            return JsonResponse({'error': 'This session already has a flow file'}, status = 500)
+        try:
+            ff = BluetoothDump(name = pk, file = request.FILES['file'])
+            ff.save()
+            session.bluetooth_dump = ff
+            session.save()
+            return JsonResponse({'mgs': 'success'}, status = 201)
+        except Exception as e:
+            return JsonResponse({'err': str(e)}, status = 500)
+
+    elif request.method == 'GET':
+        with tempfile.NamedTemporaryFile() as bluetooth_dump:
+            file_size = 0
+            for chunk in session.bluetooth_dump.file.chunks():
+                bluetooth_dump.write(chunk)
+                file_size += len(chunk)
+            try:
+                bluetooth_dump.seek(0)
+                content_type = mimetypes.guess_type(str(session.bluetooth_dump.file))[0]
+                response = HttpResponse(bluetooth_dump.read(), content_type = content_type)
+                response['Content-Disposition'] = 'attachment; filename=%s-bt.pcap' % pk
+                response['Content-Length'] = file_size
+                return response
+            except Exception as e:
+                return JsonResponse({'error': str(e)}, status = 500)
+
+
+@csrf_exempt
+def create_report(request, pk):
+    try:
+        experiment = Experiment.objects.get(pk = pk)
+    except Experiment.DoesNotExist as e:
+        return JsonResponse({'error': str(e)}, status = 404)
+
+    if request.method == 'GET':
+        compute_full_report(pk)
+        return render(request, 'report.html', {'experiment': experiment, 'report': experiment.report})
+
+
+@csrf_exempt
+def view_report(request, pk):
+    try:
+        experiment = Experiment.objects.get(pk = pk)
+    except Experiment.DoesNotExist as e:
+        return JsonResponse({'error': str(e)}, status = 404)
+
+    if request.method == 'GET':
+        return render(request, 'report.html', {'experiment': experiment, 'report': experiment.report})

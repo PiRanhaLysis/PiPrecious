@@ -65,3 +65,23 @@ class SessionModelAdmin(admin.ModelAdmin):
 @admin.register(Experiment)
 class ExperimentModelAdmin(admin.ModelAdmin):
     pass
+
+
+@admin.register(NetworkAnalysis)
+class NetworkAnalysisModelAdmin(admin.ModelAdmin):
+    pass
+
+
+@admin.register(DNSQuery)
+class DNSQueryModelAdmin(admin.ModelAdmin):
+    pass
+
+
+# @admin.register(Domain)
+# class DomainModelAdmin(admin.ModelAdmin):
+#     pass
+#
+#
+# @admin.register(IpAddress)
+# class IpAddressModelAdmin(admin.ModelAdmin):
+#     pass
