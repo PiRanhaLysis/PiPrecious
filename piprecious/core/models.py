@@ -1,7 +1,6 @@
 import uuid
 
 from django.contrib.postgres.fields import JSONField
-from django.contrib.postgres.fields.hstore import HStoreField
 from django.db import models
 from django.db.models.signals import pre_delete, post_delete
 from django.dispatch.dispatcher import receiver
@@ -20,7 +19,7 @@ class Device(models.Model):
     label = models.CharField(max_length = 200, blank = True)
     website = models.URLField(blank = True)
     raw_parameters = models.TextField(blank = True)
-    markers = HStoreField(blank = True, null = True)
+    rules = models.TextField(blank = True, null = True)
 
     def __str__(self):
         return self.name
@@ -68,7 +67,8 @@ class IoTDevice(Device):
 
 
 class Smartphone(Device):
-    pass
+    imei = models.CharField(max_length = 200, blank = True, unique = True)
+    phone_number = models.CharField(max_length = 200, blank = True, unique = True)
 
 
 class APKFile(File):
@@ -92,16 +92,6 @@ def file_model_delete(sender, instance, **kwargs):
     instance.file.delete(False)
 
 
-# @receiver(post_delete, sender = FlowFile)
-# def flow_file_model_delete(sender, instance, **kwargs):
-#     instance.file.delete(True)
-#
-#
-# @receiver(post_delete, sender = BluetoothDump)
-# def bt_file_model_delete(sender, instance, **kwargs):
-#     instance.file.delete(True)
-
-
 class Application(models.Model):
     id = models.UUIDField(primary_key = True, default = uuid.uuid4, editable = False)
     name = models.CharField(max_length = 200, blank = True, default = 'application')
@@ -114,10 +104,16 @@ class Application(models.Model):
     icon_phash = models.IntegerField(blank = True, null = True)
     app_uid = models.CharField(max_length = 200, blank = True)
     creator = models.CharField(max_length = 200, blank = True)
-    markers = HStoreField(blank = True, null = True)
+    rules = models.TextField(blank = True, null = True)
 
     def __str__(self):
         return self.name
+
+    def create_rules(self):
+        rules = 'rule application_handle: application handle {\n\tstrings:\n\t\t$h = "%s"\n\tcondition:\n\t\t$h\n}\n' % self.handle
+        rules += 'rule application_version: application version {\n\tstrings:\n\t\t$ = "%s"\n\t\t$ = "%s"\n\tcondition:\n\t\tany of them\n}\n' % (
+        self.version_name, self.version_code)
+        self.rules = rules
 
     def save(self, *args, **kwargs):
         with tempfile.NamedTemporaryFile(delete = True) as apk:
@@ -135,6 +131,8 @@ class Application(models.Model):
             except Exception as e:
                 logging.error(e)
             finally:
+                if len(self.rules.strip()) == 0:
+                    self.create_rules()
                 super(Application, self).save(*args, **kwargs)
 
     class Meta:
@@ -150,7 +148,7 @@ class Experiment(models.Model):
     application = models.ForeignKey(Application, on_delete = models.CASCADE, blank = True, null = True)
     iot_device = models.ForeignKey(IoTDevice, on_delete = models.CASCADE, blank = True, null = True)
     smartphone = models.ForeignKey(Smartphone, on_delete = models.CASCADE, blank = True, null = True)
-    markers = HStoreField(blank = True, null = True)
+    rules = models.TextField(blank = True, null = True)
     report = JSONField(blank = True, null = True)
 
     def __str__(self):

@@ -103,8 +103,8 @@
                                 <a class="btn text-secondary icon-small fa fa-arrow-down" data-toggle="collapse" href="#{{e.name}}" role="button" aria-expanded="false" aria-controls="{{e.name}}"></a>
                                 Sessions
                             </h4>
-                            {% for s in e.session_set.all %}
                             <div class="collapse multi-collapse" id="{{e.name}}">
+                                {% for s in e.session_set.all %}
                                 <hr>
                                 <div class="row">
                                     <div class="col-lg-3">
@@ -193,8 +193,8 @@
                                         <a href="{% url 'core:session_details' s.pk %}" class="text-secondary icon-huge fa fa-angle-right"></a>
                                     </div>
                                 </div>
-                            </div>
                             {% endfor %}
+                            </div>
                         {% endif %}
                     </div>
                 </div>

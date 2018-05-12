@@ -1,5 +1,4 @@
 import mimetypes
-import pprint
 from concurrent.futures.thread import ThreadPoolExecutor
 
 from django.http.response import Http404, JsonResponse, HttpResponse
@@ -58,15 +57,31 @@ def session_details(request, pk):
 
 
 def parse_raw_parameters(params):
+    parameters = ['ro.build.version.incremental', 'ro.build.fingerprint', 'ro.mtk.hardware', 'ro.hardware',
+                  'ro.build.host', 'ro.mediatek.version.release', 'ro.build.display.id', 'ro.product.cpu.abi',
+                  'ro.build.tags', 'ro.custom.build.version', 'ro.build.id', 'ro.build.date.utc', 'ro.build.user',
+                  'ro.product.model']
     lines = params.split('\n')
-    markers = {}
+    rules = 'rule smartphone_attributes: mobile fingerprint {\n\tstrings:\n'
     for l in lines:
-        print(l)
-        k = l.split('": "')[0].replace('"', '')
-        v = l.split('": "')[1].replace('"', '')
-        if len(v) > 5:
-            markers[k] = v
-    return markers
+        if len(l) > 2:
+            print(l)
+            k = l.split('": "')[0].replace('"', '')
+            v = l.split('": "')[1].replace('"', '')
+            if len(v) > 5 and k in parameters:
+                rules += '\t\t$%s = "%s"\n' % (k.replace('.', '_'), v)
+    rules += '\tcondition:\n\t\t any of them\n}\n'
+    return rules
+
+
+def create_additional_smartphone_rules(s):
+    #Todo add mac addresses
+    rules = 'rule smartphone_imei: mobile imei pii {\n\tstrings:\n\t\t$imei = "%s"\n\tcondition:\n\t\t$imei\n}\n' % s.imei
+    rules += 'rule smartphone_aid: mobile android_id pii {\n\tstrings:\n\t\t$aid = "%s"\n\tcondition:\n\t\t$aid\n}\n' % s.serial
+    if len(s.phone_number) >= 10:
+        rules += 'rule smartphone_phone_number: mobile phone_number pii {\n\tstrings:\n\t\t$number = "%s"\n\tcondition:\n\t\t$number\n}\n' % s.phone_number
+    return rules
+
 
 @csrf_exempt
 def api_smartphone(request):
@@ -80,7 +95,9 @@ def api_smartphone(request):
         serializer = SmartphoneSerializer(data = data)
         if serializer.is_valid():
             s = serializer.save()
-            s.markers = parse_raw_parameters(s.raw_parameters)
+            rules = parse_raw_parameters(s.raw_parameters)
+            rules += create_additional_smartphone_rules(s)
+            s.rules = rules
             s.save()
             return JsonResponse(serializer.data, status = 201)
         return JsonResponse(serializer.errors, status = 400)
@@ -96,6 +113,22 @@ def api_experiment_get(request, pk):
     if request.method == 'GET':
         serializer = ExperimentSerializer(snippet)
         return JsonResponse(serializer.data)
+
+
+@csrf_exempt
+def api_experiment_session(request, pk):
+    try:
+        Experiment.objects.get(pk = pk)
+    except Experiment.DoesNotExist as e:
+        return JsonResponse({'error': str(e)}, status = 404)
+
+    if request.method == 'POST':
+        data = JSONParser().parse(request)
+        serializer = SessionSerializer(data = data)
+        if serializer.is_valid():
+            serializer.save()
+            return JsonResponse(serializer.data, status = 201)
+        return JsonResponse(serializer.errors, status = 400)
 
 
 @csrf_exempt
@@ -160,7 +193,6 @@ def api_apk_get(request, pk):
                 return response
             except Exception as e:
                 return JsonResponse({'error': str(e)}, status = 500)
-
 
 
 @csrf_exempt

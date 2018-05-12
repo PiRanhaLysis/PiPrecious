@@ -19,6 +19,12 @@ class ExperimentSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
+class SessionSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Session
+        fields = '__all__'
+
+
 class ApplicationSerializer(serializers.ModelSerializer):
     class Meta:
         model = Application

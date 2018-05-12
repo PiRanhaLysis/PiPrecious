@@ -6,3 +6,16 @@ You can run an experiment multiple times, each run is a Session. A session store
 
 # Installation
 _Coming soon_
+```commandline
+apt install libyara3
+```
+
+# Notes
+Get IMEI with `adb`
+```commandline
+adb shell service call iphonesubinfo 1
+```
+Get phone number with `adb`
+```commandline
+adb shell service call iphonesubinfo 17
+```

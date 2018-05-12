@@ -110,12 +110,12 @@
                             {% for d, v in report.items %}
                                 <tr>
                                     <td><samp>{{ d }}</samp></td>
-                                    <td><code>{{ v.dns.ip }}</code></td>
+                                    <td><code>{{ v.ip }}</code></td>
                                     <td>{{ v.secure }}</td>
                                     <td>
                                         <ul>
-                                            {% for m in v.data %}
-                                                <li>{{ m }}</li>
+                                            {% for k,v in v.matches.items %}
+                                                <li><span class="badge badge-secondary">{{ k }}</span></li>
                                             {% endfor %}
                                         </ul>
                                     </td>

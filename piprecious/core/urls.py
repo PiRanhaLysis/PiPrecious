@@ -18,6 +18,7 @@ urlpatterns = [
     url(r'^api/smartphone/(?P<pk>[^/]+)/$', views.api_smartphone_get, name = 'api_smartphone_get'),
 
     url(r'^api/experiment/(?P<pk>[^/]+)/$', views.api_experiment_get, name = 'api_experiment_get'),
+    url(r'^api/experiment/(?P<pk>[^/]+)/session$', views.api_experiment_session, name = 'api_experiment_session'),
 
     url(r'^api/application/(?P<pk>[^/]+)/$', views.api_application_get, name = 'api_application_get'),
     url(r'^api/application/(?P<pk>[^/]+)/apk', views.api_apk_get, name = 'api_apk_get'),
