@@ -1,4 +1,4 @@
-# English 
+# 🇬🇧 English 
 ## PiPrecious
 PiPrecious is meant to store experiment conditions + various capture files. 
 [PiRanha](https://github.com/PiRanhaLysis/PiRanha) is meant to automatically setup/reproduce an experiment environment (based on references stored in PiPrecious) 
@@ -8,7 +8,7 @@ You can run an experiment multiple times, each run is a Session. A session store
 ## Installation
 *  [Development environment installation guide](doc/install_en.md)
 
-# Français 
+# 🇫🇷 Français 
 ## PiPrecious
 PiPrecious a pour objectif de stocker tous les paramètres d'expérimentation ainsi que les différents fichiers de capture. 
 [PiRanha](https://github.com/PiRanhaLysis/PiRanha) se charge d'automatiquement reproduire des conditions d'expérimentation
@@ -20,5 +20,3 @@ session sont associés les fichiers de capture PCAP, FLOW et Bluetooth.
 
 ## Installation
 *  [Guide d'installation de l'environnement de développement](doc/install_fr.md)
-
-🇫🇷🇫🇷🇫🇷🇫🇷🇫🇷🇫🇷🇫🇷🇫🇷🇫🇷🇫🇷🇫🇷
