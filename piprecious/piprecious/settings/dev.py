@@ -18,8 +18,8 @@ DATABASES = {
 }
 
 MINIO_STORAGE_ENDPOINT = '127.0.0.1:9000'
-MINIO_STORAGE_ACCESS_KEY = 'exodusexodus'
-MINIO_STORAGE_SECRET_KEY = 'exodusexodus'
+MINIO_STORAGE_ACCESS_KEY = 'pipreciouspiprecious'
+MINIO_STORAGE_SECRET_KEY = 'pipreciouspiprecious'
 MINIO_STORAGE_USE_HTTPS = False
 MINIO_STORAGE_MEDIA_BUCKET_NAME = 'piprecious-media'
 MINIO_STORAGE_STATIC_BUCKET_NAME = 'piprecious-static'
