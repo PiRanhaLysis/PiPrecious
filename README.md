@@ -12,7 +12,7 @@ You can run an experiment multiple times, each run is a Session. A session store
 ## PiPrecious
 PiPrecious a pour objectif de stocker tous les paramètres d'expérimentation ainsi que les différents fichiers de capture. 
 [PiRanha](https://github.com/PiRanhaLysis/PiRanha) se charge d'automatiquement reproduire des conditions d'expérimentation
-(en se basant sur les références références stockées dans PiPrecious) et d'effectuer la capture du trafic réseau. 
+(en se basant sur les références stockées dans PiPrecious) et d'effectuer la capture du trafic réseau. 
 pour le moment, une expérimentation est définie par un smartphone, une application mobile et un objet connecté (optionnel).
 
 Il est possible d'exécuter une même expérimentation plusieurs fois, chaque exécution est nommée une Session. À chaque 
