@@ -1,4 +1,8 @@
 # Environnement de développement
+Ce guide a été testé sur :
+* Ubuntu 18.04 `x86_64`
+* Debian 9 `x86_64`
+
 ## Étape 1 - Dépendances système
 ```
 sudo apt install -y git virtualenv postgresql-9.6 python3 python3-dev dexdump gcc
@@ -69,21 +73,23 @@ cat > $HOME/.minio/config.json << EOL
 EOL
 ```
 
-## Étape 8 - Créer le dossier de stockage pour Minio
+## Étape 9 - Créer le dossier de stockage pour Minio
 ```
 mkdir -p $HOME/piprecious-storage
 ```
 
-## Étape 9 - Démarrer Minio
+## Étape 10 - Démarrer Minio
 ```
 $HOME/minio server $HOME/piprecious-storage
 ```
 Minio écoute désormais sur le port `9000` et son interface Web est accessible à l'adresse 
 [http://127.0.0.1:9000](http://127.0.0.1:9000). Les login et mot de passe sont `pipreciouspiprecious`.
 
-## Étape 10 - Démarrer le serveur PiPrecious
+## Étape 11 - Démarrer le serveur PiPrecious
 Il est nécessaire d'activer l'environnement Python et de se placer dans le même dossier que le fichier `manage.py`.
 ```
 python manage.py runserver --settings=piprecious.settings.dev
 ```
 Rendez-vous sur [http://127.0.0.1:8000](http://127.0.0.1:8000).
+
+**NB** : le serveur Minio et le serveur PiPrecious doivent être tous les 2 lancés.
