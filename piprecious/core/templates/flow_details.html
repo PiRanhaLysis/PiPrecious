@@ -1,0 +1,596 @@
+{% extends "base.html"%}
+{% block header %}
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/handlebars.js/4.0.11/handlebars.min.js"></script>
+        <script src="https://d3js.org/d3.v4.min.js"></script>
+        <script>
+const dump = JSON.parse({{flows|safe}});
+var previous_row = 'None';
+class Viewer {
+    constructor() {
+        const _this = this
+        this.flow_table = $('#flows');
+        this.flow_details = $('#flow_details');
+        this.layers = $('#layers');
+        this.analysis_details = $('#analysis_details');
+        this.flow_table_tpl = Handlebars.compile($('#flow_table_tpl').html());
+        this.flow_details_tpl = Handlebars.compile($('#flow_details_tpl').html());
+        this._dump = {}
+        dump.forEach(function(f){
+            _this._dump[f.id] = f
+        })
+        console.dir(_this._dump)
+    }
+
+    renderFlowDetails(id) {
+        this.flow_details.html(this.flow_details_tpl({data: this._dump[id]}))
+    }
+
+    renderAnalysis(id) {
+        $('#url_analysis').html('Loading ...')
+        $('#content_analysis').html('Loading ...')
+        $('#response_analysis').html('Loading ...')
+        var url_analysis = new AnalysisViewer(this._dump[id].inspection.url.layers, '#url_analysis')
+        url_analysis.render()
+        if (this._dump[id].inspection.content) {
+            var content_analysis = new AnalysisViewer(this._dump[id].inspection.content.layers, '#content_analysis')
+            content_analysis.render()
+        }
+        if (this._dump[id].inspection.response) {
+            var response_analysis = new AnalysisViewer(this._dump[id].inspection.response.layers, '#response_analysis')
+            response_analysis.render()
+        }
+    }
+
+    renderFlowTable(selected_flow){
+        this.flow_table.html(this.flow_table_tpl({data: dump}))
+        const _this = this
+        $('.flow_row').click(function(e){
+            $('#'+previous_row).removeClass('table-active')
+            previous_row = e.currentTarget.id
+            $('#'+previous_row).addClass('table-active')
+            $('#analysis_details').html('')
+            _this.renderFlowDetails(e.currentTarget.id)
+            _this.renderAnalysis(e.currentTarget.id)
+        })
+    }
+}
+
+class AnalysisViewer {
+    constructor(data, dom_node){
+        this.data = data;
+        this.dom_node = dom_node;
+        this.analysis_tpl = Handlebars.compile($('#analysis_tpl').html());
+    }
+    clear(){
+        d3.select(this.dom_node).html('')
+    }
+    renderDetails(d){
+        $('#analysis_details').html(this.analysis_tpl({data: d}))
+    }
+    render() {
+        const _this = this
+        function color(d) {
+            return d._children ? "#684971" : d.children ? "#684971" : "#68497133";
+        }
+
+        function escape(s) {
+            return s.replace(/</g, "&lt;").replace(/>/g, "&gt;")
+        }
+
+        function click(d) {
+            _this.renderDetails(d.data)
+            // document.getElementById("headers").innerHTML = ''
+            // document.getElementById("rules").innerHTML = ''
+            // document.getElementById("content").innerHTML = ''
+
+            // var h = '<strong>type</strong> = <samp>'+d.data.name+'</samp><br>'
+            // d.data.headers.forEach(function(header){
+            //   var k = Object.keys(header)[0]
+            //   h += '<strong>'+escape(k)+'</strong> = <samp>'+header[k]+'</samp>'
+            //   h+="<br>"
+            // })
+            // document.getElementById("headers").innerHTML = h
+
+            // h = ''
+            // d.data.matching_rules.forEach(function(rule){
+            //   h += '<strong>'+rule.rule+'</strong> = '+rule.tags.join()
+            //   h+="<br>"
+            // })
+            // document.getElementById("rules").innerHTML = h
+
+            // var c = ''
+            // d.data.text.forEach(function(l){
+            //   c += escape(l)
+            //   c+="<br>"
+            // })
+            // document.getElementById("content").innerHTML = '<pre>'+c+'</pre>'
+        }
+        var source = this.data;
+
+        var root = d3.hierarchy(source);
+        root.x0 = 0;
+        root.y0 = 0;
+
+        var margin = {top: 30, right: 20, bottom: 30, left: 20},
+            width = 560,
+            barHeight = 20,
+            barWidth = (width - margin.left - margin.right) * 0.8;
+
+        var i = 0,
+            duration = 400,
+            root;
+
+        var diagonal = d3.linkHorizontal()
+            .x(function(d) { return d.y; })
+            .y(function(d) { return d.x; });
+
+        // Compute the flattened node list.
+        var nodes = root.descendants();
+
+        var height = Math.max(500, nodes.length * barHeight + margin.top + margin.bottom);
+
+        d3.select(this.dom_node).html('')
+
+        var svg = d3.select(this.dom_node).append("svg")
+            .attr("width", width) // + margin.left + margin.right)
+            .attr("height", height)
+            .append("g")
+            .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+        svg.transition()
+            .duration(duration)
+            .attr("height", height);
+
+        d3.select(self.frameElement).transition()
+            .duration(duration)
+            .style("height", height + "px");
+
+        // Compute the "layout". TODO https://github.com/d3/d3-hierarchy/issues/67
+        var index = -1;
+        root.eachBefore(function(n) {
+            n.x = ++index * barHeight;
+            n.y = n.depth * 20;
+        });
+
+        // Update the nodes…
+        var node = svg.selectAll(".node")
+            .data(nodes, function(d) { return d.id || (d.id = ++i); });
+
+        var nodeEnter = node.enter().append("g")
+            .attr("class", "node")
+            // .attr("transform", function(d) { return "translate(" + source.y0 + "," + source.x0 + ")"; })
+            .style("opacity", 0);
+
+        // Enter any new nodes at the parent's previous position.
+        nodeEnter.append("rect")
+            .attr("y", -barHeight / 2)
+            .attr("height", barHeight)
+            .attr("width", barWidth)
+            .style("fill", color)
+            .on("click", click);
+
+        nodeEnter.append("text")
+            .attr("dy", 3.5)
+            .attr("dx", 5.5)
+            .text(function(d) {
+                return d.data.name.substring(0, 32)
+            });
+
+        nodeEnter.append("text")
+            .attr("dy", 3.5)
+            .attr("dx", barWidth-30)
+            .attr("class", "code")
+            .attr("text-anchor", "end")
+            .text(function(d) {
+                if(d.data.human_readable){
+                    return d.data.text[0].substring(0, 32)
+                }
+            });
+
+        nodeEnter.append("text")
+            .attr("dy", 3.5)
+            .attr("dx", barWidth-10)
+            .attr("class", "warning")
+            .attr("text-anchor", "end")
+            .text(function(d) {
+                if(d.data.matching_rules.length != 0){
+                    return '🔺'
+                }
+            });
+
+        // Transition nodes to their new position.
+        nodeEnter.transition()
+            .duration(duration)
+            .attr("transform", function(d) { return "translate(" + d.y + "," + d.x + ")"; })
+            .style("opacity", 1);
+
+        node.transition()
+            .duration(duration)
+            .attr("transform", function(d) { return "translate(" + d.y + "," + d.x + ")"; })
+            .style("opacity", 1)
+            .select("rect")
+            .style("fill", color);
+
+        // Transition exiting nodes to the parent's new position.
+        node.exit().transition()
+            .duration(duration)
+            .attr("transform", function(d) { return "translate(" + source.y + "," + source.x + ")"; })
+            .style("opacity", 0)
+            .remove();
+
+        // Update the links…
+        var link = svg.selectAll(".link")
+            .data(root.links(), function(d) { return d.target.id; });
+
+        // Enter any new links at the parent's previous position.
+        link.enter().insert("path", "g")
+            .attr("class", "link")
+            // .attr("d", function(d) {
+            //     var o = {x: source.x0, y: source.y0};
+            //     return diagonal({source: o, target: o});
+            // })
+            .transition()
+            .duration(duration)
+            .attr("d", diagonal);
+
+        // Transition links to their new position.
+        link.transition()
+            .duration(duration)
+            .attr("d", diagonal);
+
+        // Transition exiting nodes to the parent's new position.
+        link.exit().transition()
+            .duration(duration)
+            .attr("d", function(d) {
+                var o = {x: source.x, y: source.y};
+                return diagonal({source: o, target: o});
+            })
+            .remove();
+
+        // Stash the old positions for transition.
+        root.each(function(d) {
+            d.x0 = d.x;
+            d.y0 = d.y;
+        });
+    }
+}
+</script>
+<style>
+    #viewer {
+        width: 98vw;
+        height: 83vh;
+        margin: auto;
+    }
+    .pane {
+        background-color: rgba(221, 221, 221, 0.12);
+        padding: .2em;
+        margin: .5em;
+        overflow-y: auto;
+    }
+    #dump {
+        position: relative;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 40%;
+        display: flex;
+    }
+    #flows {
+        overflow-x: hidden;
+    }
+    .flow_row {
+        cursor: -webkit-grab;
+    }
+    #flows, #layers {
+        flex: 0 0 65%;
+        max-width: 65%;
+    }
+    #flow_details, #analysis_details {
+        flex: 1;
+        overflow: auto;
+    }
+    #analysis {
+        position: relative;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        height: 60%;
+        display: flex;
+    }
+    .node rect {
+        cursor: pointer;
+        fill: #fff;
+        fill-opacity: 0.5;
+        stroke: #888888;
+        stroke-width: 1.5px;
+    }
+
+    .node text {
+        font: 10px sans-serif;
+        pointer-events: none;
+    }
+
+    .node .code{
+        font: 8px monospace !important;
+        pointer-events: none;
+    }
+
+    .node .warning{
+        font: 11px verdana !important;
+        color: red;
+        pointer-events: none;
+    }
+
+    .link {
+        fill: none;
+        stroke: #9ecae1;
+        stroke-width: 1.5px;
+    }
+
+    #console {
+        height: 100%;
+        padding: 2em;
+        word-wrap: break-word;
+        overflow: hidden;
+    }
+
+    #headers {
+        padding: 2em;
+    }
+
+    #rules {
+        padding: 2em;
+    }
+
+    #content {
+        margin-left: 2em;
+    }
+    #flows tr {
+        white-space: nowrap;
+    }
+    span.badge {
+        font-size: 1.05em;
+    }
+    pre {
+        overflow: initial !important;
+    }
+</style>
+{% endblock %}
+{% block content %}
+<div class="row">
+    <div class="col-lg-4">
+        <h2><span class="text-secondary icon-small fa fa-spinner"></span> {{session.name}}</h2>
+    </div>
+</div>
+<div class="row justify-content-md-center">
+    <div class="col-lg-3">
+        <figure class="figure text-center">
+            <span class="text-secondary icon-normal fa fa-flask"></span>
+            <b class="text-primary small">{{ experiment.name|truncatechars_html:20 }}</b>
+            <figcaption class="figure-caption text-truncate">
+                <ul class="text-left small">
+                    <li class="">ID: <code class="small">{{experiment.pk}}</code></li>
+                    <li class="">Creation: <code>{{ experiment.created | date:"D d M Y" }}</code></li>
+                </ul>
+            </figcaption>
+        </figure>
+    </div>
+    <div class="col-lg-3">
+        <figure class="figure text-center">
+            {% if experiment.smartphone.name.strip %}
+                <span class="text-secondary icon-normal fa fa-mobile"></span>
+                <b class="text-primary small">{{ experiment.smartphone.name|truncatechars_html:20 }}</b>
+                <figcaption class="figure-caption text-truncate">
+                    <ul class="text-left small">
+                        <li class="">Serial: <code>{{ experiment.smartphone.serial }}</code></li>
+                        <li class="">Brand: <code>{{ experiment.smartphone.brand }}</code></li>
+                    </ul>
+                </figcaption>
+            {% else %}
+                <span class="text-secondary icon-normal fa fa-times">
+                </span>
+                <figcaption class="figure-caption text-truncate">
+                    <b class="text-primary small">No smartphone</b>
+                </figcaption>
+            {% endif %}
+        </figure>
+    </div>
+    <div class="col-lg-3">
+        <figure class="figure text-center">
+            {% if experiment.application.name.strip %}
+                <span class="text-secondary icon-normal fa fa-android"></span>
+                <b class="text-primary small">{{ experiment.application.name|truncatechars_html:20 }}</b>
+                <figcaption class="figure-caption text-truncate">
+                    <ul class="text-left small">
+                        <li class="">Version: <code>{{ experiment.application.version_name }}</code></li>
+                        <li class="">Size: <code>{{ experiment.application.apk.size|filesizeformat }}</code></li>
+                    </ul>
+                </figcaption>
+            {% else %}
+                <span class="text-secondary icon-normal fa fa-times">
+                </span>
+                <figcaption class="figure-caption text-truncate">
+                    <b class="text-primary small">No application</b>
+                </figcaption>
+            {% endif %}
+        </figure>
+    </div>
+    <div class="col-lg-3">
+        <figure class="figure text-center">
+            {% if experiment.iot_device.name.strip %}
+                <span class="text-secondary icon-normal fa fa-bluetooth">
+                </span>
+                <figcaption class="figure-caption text-truncate">
+                    <b class="text-primary small">{{ experiment.iot_device.name|truncatechars_html:20 }}</b>
+                    <ul class="text-left small">
+                        <li class="">Serial: <code>{{ experiment.iot_device.serial }}</code></li>
+                        <li class="">Brand: <code>{{ experiment.iot_device.brand }}</code></li>
+                        <li class="">Creation: <code>{{ experiment.iot_device.created | date:"D d M Y" }}</code></li>
+                    </ul>
+                </figcaption>
+            {% else %}
+                <span class="text-secondary icon-normal fa fa-times">
+                </span>
+                <figcaption class="figure-caption text-truncate">
+                    <b class="text-primary small">No IoT device</b>
+                </figcaption>
+            {% endif %}
+        </figure>
+    </div>
+</div>
+<div class="row justify-content-md-center">
+    <div class="col-lg-12 small">
+        <div id="viewer">
+            <div id="dump">
+                <div class="pane" id="flows">
+                </div>
+                <div class="pane" id="flow_details">
+                </div>
+            </div>
+            <div id="analysis">
+                <div class="pane" id="layers">
+                    <div class="small">
+                        <ul class="nav nav-tabs small">
+                            <li><a class="btn btn-light btn-sm" data-toggle="tab" href="#url_analysis">URL</a></li>
+                            <li>&nbsp;</li>
+                            <li><a class="btn btn-light btn-sm" data-toggle="tab" href="#content_analysis">Request</a></li>
+                            <li>&nbsp;</li>
+                            <li><a class="btn btn-light btn-sm" data-toggle="tab" href="#response_analysis">Response</a></li>
+                        </ul>
+                    </div>
+                    <div class="tab-content">
+                        <div id="url_analysis" class="tab-pane active"></div>
+                        <div id="content_analysis" class="tab-pane"></div>
+                        <div id="response_analysis" class="tab-pane"></div>
+                    </div>
+                </div>
+                <div class="pane small" id="analysis_details">
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% verbatim %}
+<script id="flow_table_tpl" type="x-tmpl-mustache">
+    <table class="table table-sm table-hover">
+        <tbody>
+            {{#data}}
+                <tr class="small flow_row" id={{id}}>
+                    <td><span class="badge badge-secondary">{{request.method}}</span></td>
+                    <td>
+                        {{#if inspection.clues}}
+                        <span class="badge badge-danger">{{inspection.clues}}</span>
+                        {{else}}
+                        <span class="badge badge-success">{{inspection.clues}}</span>
+                        {{/if}}
+                    </td>
+                    <td>
+                        <samp>{{request.url}}</samp>
+                        <br/>
+                        {{#each inspection.tags}}
+                            <span class="badge badge-warning">{{this}}</span>
+                        {{/each}}
+                    </td>
+                <tr>
+            {{/data}}
+        </tbody>
+    </table>
+</script>
+<script id="analysis_tpl" type="x-tmpl-mustache">
+    <h5>Headers</h5>
+    <table class="table table-sm table-borderless table-hover">
+        <tbody>
+            <tr>
+                <td><strong>name</strong></td>
+                <td><samp>{{data.name}}</samp></td>
+            </tr>
+            {{#each data.headers}}
+                <tr class="">
+                    {{#each this}}
+                        <td><strong>{{@key}}</strong></td>
+                        <td><samp>{{this}}</samp></td>
+                    {{/each}}
+                <tr>
+            {{/each}}
+        </tbody>
+    </table>
+    <h5>Rules</h5>
+    <table class="table table-sm table-borderless table-hover">
+        <tbody>
+            {{#each data.matching_rules}}
+                <tr class="">
+                    <td><strong>{{rule}}</strong></td>
+                    <td>
+                        {{#each tags}}
+                            <span class="badge badge-warning">{{this}}</span>
+                        {{/each}}
+                    </td>
+                <tr>
+            {{/each}}
+        </tbody>
+    </table>
+    <h5>Content</h5>
+    <pre>{{#each data.text}}{{this}}<br/>{{/each}}</pre>
+</script>
+<script id="flow_details_tpl" type="x-tmpl-mustache">
+    <div class="small">
+        <ul class="nav nav-tabs">
+            <li><a class="btn btn-light btn-sm" data-toggle="tab" href="#request">Request</a></li>
+            <li>&nbsp;</li>
+            <li><a class="btn btn-light btn-sm" data-toggle="tab" href="#response">Response</a></li>
+        </ul>
+    </div>
+    <div><br></div>
+    <div class="tab-content">
+        <div id="request" class="tab-pane active">
+            <table class="table table-sm small table-borderless table-hover">
+                <tbody>
+                    <tr>
+                        <td><strong>Method</strong></td>
+                        <td><samp>{{data.request.method}}</samp></td>
+                    </tr>
+                    <tr>
+                        <td><strong>URL</strong></td>
+                        <td><samp>{{data.request.url}}</samp></td>
+                    </tr>
+                </tbody>
+            </table>
+            <div>
+                {{#each data.inspection.tags}}
+                    <span class="badge badge-warning">{{this}}</span>
+                {{/each}}
+            </div>
+            <br>
+            <h5>Headers</h5>
+            <table class="table table-sm small table-borderless table-hover">
+                <tbody>
+                    {{#each data.request.headers}}
+                    <tr>
+                        <td><strong>{{name}}</strong></td>
+                        <td><samp>{{value}}</samp></td>
+                    </tr>
+                    {{/each}}
+                </tbody>
+            </table>
+        </div>
+        <div id="response" class="tab-pane">
+            <h5>{{data.response.httpVersion}}</h5>
+            <table class="table table-sm small table-borderless table-hover">
+                <tbody>
+                    {{#each data.response.headers}}
+                    <tr>
+                        <td><strong>{{name}}</strong></td>
+                        <td><samp>{{value}}</samp></td>
+                    </tr>
+                    {{/each}}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</script>
+{% endverbatim %}
+<script>
+    const v = new Viewer()
+    v.renderFlowTable()
+</script>
+{% endblock %}
