@@ -1,12 +1,15 @@
 <!doctype html>
 <html>
 <head>
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+    {% load static %}
     <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet" integrity="sha384-wvfXpqpZZVQGK6TAh5PVlGOfQNHSoD2xbE+QkPxCAFlNEevoEH3Sl0sibVcOQVnN" crossorigin="anonymous">
-    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
-    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
-    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.bundle.min.js" integrity="sha384-feJI7QwhOS+hwpX2zkaeJQjeiwlhOP+SdQDqhgvvo1DsjtiSQByFdThsxO669S2D" crossorigin="anonymous"></script>
+    <link href="{% static "core/css/bootstrap.min.css" %}" rel="stylesheet">
+    <script src="{% static "core/js/jquery.min.js" %}"></script>
+    <script src="{% static "core/js/bootstrap.min.js" %}"></script>
+    <script src="{% static "core/js/bootstrap.bundle.min.js" %}"></script>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    {% block header %}
+    {% endblock %}
     <style>
         html {
             font-size : 0.9em;
@@ -60,24 +63,41 @@
     <div class="collapse navbar-collapse" id="navbarSupportedContent">
         <ul class="navbar-nav mr-auto">
             <li class="nav-item">
-                <a class="nav-link" href="/">Home <span class="sr-only">(current)</span></a>
+                <a class="nav-link btn btn-lg" href="/"><h2><span class="fa fa-home"></span></h2><span class="sr-only">(current)</span></a>
             </li>
             <li class="nav-item">
-                <a class="nav-link" href="{% url 'core:application_list' %}">Applications</a>
+                <a class="nav-link btn btn-lg" href="{% url 'core:experiment_list' %}"><h2><span class="fa fa-flask"></span></h2></a>
             </li>
             <li class="nav-item">
-                <a class="nav-link" href="{% url 'core:smartphone_list' %}">Smartphones</a>
+                <a class="nav-link btn btn-lg" href="{% url 'core:smartphone_list' %}"><h2><span class="fa fa-mobile"></span></h2></a>
             </li>
             <li class="nav-item">
-                <a class="nav-link" href="{% url 'core:device_list' %}">Devices</a>
+                <a class="nav-link btn btn-lg" href="{% url 'core:application_list' %}"><h2><span class="fa fa-android"></span></h2></a>
             </li>
+            <li class="nav-item">
+                <a class="nav-link btn btn-lg" href="{% url 'core:device_list' %}"><h2><span class="fa fa-bluetooth"></span></h2></a>
+            </li>
+        </ul>
     </div>
+
+    <span class="navbar-text">
+      <a class="nav-link btn btn-lg" href="{% url 'admin:index' %}"><span class="fa fa-cogs"></span></a>
+    </span>
 </nav>
 <br>
 <div class="container-fluid">
+{% if request.user.is_superuser %}
     {% block content %}
 
     {% endblock %}
+{% else %}
+    <div class="row justify-content-md-center">
+        <div class="col-lg-12">
+            <div class="alert bg-light">
+            </div>
+        </div>
+    </div>
+{% endif %}
 </div>
 <script>
 $(function () {

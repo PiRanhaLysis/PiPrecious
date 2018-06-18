@@ -114,8 +114,15 @@
                                     <td>{{ v.secure }}</td>
                                     <td>
                                         <ul>
-                                            {% for k,v in v.matches.items %}
-                                                <li><span class="badge badge-secondary">{{ k }}</span></li>
+                                            {% for k,v in v.rules.items %}
+                                                <li><span class="badge badge-warning">{{v.count}}</span>
+                                                    <span class="badge badge-secondary text-uppercase"><b>{{ k }}</b></span>
+                                                    <ul class="list-unstyled">
+                                                      {% for t in v.tags %}
+                                                        <li><span class="badge badge-info"><samp>{{t}}</samp></span></li>
+                                                      {% endfor %}
+                                                    </ul>
+                                                </li>
                                             {% endfor %}
                                         </ul>
                                     </td>

@@ -4,7 +4,7 @@ SECRET_KEY = '!ktcqr7o(gv(6uk1iqz&didubab^g!&i)h%f5kn$s91(2jd0nu'
 
 DEBUG = True
 
-ALLOWED_HOSTS = ['localhost', '192.168.1.128']
+ALLOWED_HOSTS = ['localhost', '192.168.1.115', 'mnpi7k3h2env7mef.onion']
 
 DATABASES = {
     'default': {
@@ -18,8 +18,8 @@ DATABASES = {
 }
 
 MINIO_STORAGE_ENDPOINT = '127.0.0.1:9000'
-MINIO_STORAGE_ACCESS_KEY = 'pipreciouspiprecious'
-MINIO_STORAGE_SECRET_KEY = 'pipreciouspiprecious'
+MINIO_STORAGE_ACCESS_KEY = 'exodusexodus'
+MINIO_STORAGE_SECRET_KEY = 'exodusexodus'
 MINIO_STORAGE_USE_HTTPS = False
 MINIO_STORAGE_MEDIA_BUCKET_NAME = 'piprecious-media'
 MINIO_STORAGE_STATIC_BUCKET_NAME = 'piprecious-static'

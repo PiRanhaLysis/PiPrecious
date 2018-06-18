@@ -15,6 +15,7 @@
                                 <li class="">Brand: <code>{{ s.brand }}</code></li>
                                 <li class="">Creation: <code>{{ s.created | date:"D d M Y" }}</code></li>
                             </ul>
+                            <a href="{% url 'admin:core_smartphone_change' s.id %}" class="btn btn-sm btn-purple fa fa-pencil"></a>
                         </figcaption>
                     </figure>
                 </div>

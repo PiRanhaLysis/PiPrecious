@@ -8,3 +8,4 @@ djangorestframework==3.8.0
 pyshark==0.3.7.11
 mitmproxy==3.0.4
 yara-python==3.7.0
+django-jet==1.0.7

@@ -29,6 +29,7 @@ class Device(models.Model):
 
     class Meta:
         ordering = ('name',)
+        verbose_name_plural = "devices"
 
 
 def path_and_rename(instance, filename):
@@ -60,31 +61,46 @@ class File(models.Model):
 
     class Meta:
         ordering = ('name',)
+        verbose_name_plural = "files"
 
 
 class IoTDevice(Device):
-    pass
+    class Meta:
+        ordering = ('name',)
+        verbose_name_plural = "IoT devices"
 
 
 class Smartphone(Device):
     imei = models.CharField(max_length = 200, blank = True, unique = True)
     phone_number = models.CharField(max_length = 200, blank = True, unique = True)
 
+    class Meta:
+        ordering = ('name',)
+        verbose_name_plural = "Smartphones"
+
 
 class APKFile(File):
-    pass
+    class Meta:
+        ordering = ('name',)
+        verbose_name_plural = "APK files"
 
 
 class PCAPFile(File):
-    pass
+    class Meta:
+        ordering = ('name',)
+        verbose_name_plural = "PCAP files"
 
 
 class FlowFile(File):
-    pass
+    class Meta:
+        ordering = ('name',)
+        verbose_name_plural = "FLOW files"
 
 
 class BluetoothDump(File):
-    pass
+    class Meta:
+        ordering = ('name',)
+        verbose_name_plural = "Bluetooth dumps"
 
 
 @receiver(pre_delete, sender = File)
@@ -137,6 +153,7 @@ class Application(models.Model):
 
     class Meta:
         ordering = ('name',)
+        verbose_name_plural = "Applications"
 
 
 class Experiment(models.Model):
@@ -156,6 +173,7 @@ class Experiment(models.Model):
 
     class Meta:
         ordering = ('name',)
+        verbose_name_plural = "Experiments"
 
 
 class Session(models.Model):
@@ -173,7 +191,8 @@ class Session(models.Model):
         return self.name
 
     class Meta:
-        ordering = ('name',)
+        ordering = ('created',)
+        verbose_name_plural = "Sessions"
 
 
 @receiver(post_delete, sender = Session)
@@ -213,6 +232,9 @@ class NetworkAnalysis(models.Model):
     id = models.UUIDField(primary_key = True, default = uuid.uuid4, editable = False)
     session = models.ForeignKey(Session, on_delete = models.CASCADE)
 
+    class Meta:
+        verbose_name_plural = "Network analyses"
+
 
 class DNSQuery(models.Model):
     id = models.UUIDField(primary_key = True, default = uuid.uuid4, editable = False)
@@ -229,6 +251,7 @@ class DNSQuery(models.Model):
 
     class Meta:
         ordering = ('domain',)
+        verbose_name_plural = "DNS queries"
 
     def __str__(self):
         return '%s - %s' % (self.domain, self.address)

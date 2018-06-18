@@ -18,6 +18,8 @@ from django.urls import path
 from django.conf.urls import include
 
 urlpatterns = [
+    path(r'^jet/dashboard/', include('jet.dashboard.urls', 'jet-dashboard')),
+    path(r'^jet/', include('jet.urls', 'jet')),
     path('admin/', admin.site.urls),
     path('', include('core.urls')),
 ]

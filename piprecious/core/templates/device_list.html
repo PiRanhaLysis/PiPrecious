@@ -16,6 +16,7 @@
                                 <li class="">Creation: <code>{{ s.created | date:"D d M Y" }}</code></li>
                             </ul>
                         </figcaption>
+                        <a href="{% url 'admin:core_iotdevice_change' s.id %}" class="btn btn-sm btn-purple fa fa-pencil"></a>
                     </figure>
                 </div>
             {% endfor %}

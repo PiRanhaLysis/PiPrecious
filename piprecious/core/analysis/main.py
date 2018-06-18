@@ -1,14 +1,16 @@
 import json
 import pprint
 import tempfile
-import requests
 import yara
 
-from core.analysis.har import flow_to_har
-from core.models import Experiment
-
+import requests
 from mitmproxy import io
 from mitmproxy.exceptions import FlowReadException
+from phorcys.inspectors.dump_inspector import DumpInspector
+from phorcys.inspectors.yara_inspector import YaraInspector
+from phorcys.loaders.flow import FlowLoader
+
+from core.models import Experiment
 
 
 def geoip(ip):
@@ -33,10 +35,11 @@ def geoip(ip):
         result['organization'] = obj['organization']
     return result
 
+
 def get_host_from_headers(flow):
-    for k, v in flow.request.headers.items():
-        if k == 'Host':
-            return v
+    for h in flow['request']['headers']:
+        if str(h['name']).lower() == 'host':
+            return h['value']
 
 
 def check_payload(flow, payload, rules, results):
@@ -106,14 +109,34 @@ def merge_dns_markers(dns, markers):
     return markers
 
 
+def compute_flow_details(session):
+    rules = session.experiment.rules
+    if session.experiment.application:
+        rules += session.experiment.application.rules
+    if session.experiment.smartphone:
+        rules += session.experiment.smartphone.rules
+
+    if session.flow_file is not None:
+        with tempfile.NamedTemporaryFile() as flow_file:
+            for chunk in session.flow_file.file.chunks():
+                flow_file.write(chunk)
+            flow_file.seek(0)
+            flows = FlowLoader(flow_file.name)
+            flows.load()
+            di = DumpInspector(flows, [YaraInspector(rules)])
+            di.inspect()
+            return flows
+    return None
+
+
 def compute_full_report(experiment_id):
     try:
         experiment = Experiment.objects.get(pk = experiment_id)
     except Experiment.DoesNotExist as e:
-        return
+        return None
 
     dns = {}
-
+    results = {}
     for session in experiment.session_set.all():
         for analysis in session.networkanalysis_set.all():
             for dns_query in analysis.dnsquery_set.all():
@@ -125,9 +148,27 @@ def compute_full_report(experiment_id):
                     'city': dns_query.city,
                     'organization': dns_query.organization,
                 }
-    results = find_markers(experiment)
+    for session in experiment.session_set.all():
+        flows = compute_flow_details(session)
+        if flows is None:
+            continue
+        for f in flows:
+            host = get_host_from_headers(f)
+            if host not in results:
+                results[host] = {
+                    'ip': f['request']['host'],
+                    'secure': f['request']['url'].startswith('https'),
+                    'rules': {},
+                }
+
+            flow_rules = f['inspection']['rules']
+            for rule_name, rule in flow_rules.items():
+                if rule_name not in results[host]['rules']:
+                    results[host]['rules'][rule_name] = rule
+                else:
+                    results[host]['rules'][rule_name]['count'] += rule['count']
+
     results = merge_dns_markers(dns, results)
     experiment.report = results
 
-    experiment.save()
-
+    return experiment.save()
