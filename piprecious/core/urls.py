@@ -12,6 +12,7 @@ urlpatterns = [
     url(r'^devices$', views.device_list, name = 'device_list'),
     url(r'^session/(?P<pk>[^/]+)/$', views.session_details, name = 'session_details'),
     url(r'^session/(?P<pk>[^/]+)/flow$', views.flow_details, name = 'flow_details'),
+    url(r'^api/session/(?P<pk>[^/]+)/flow/details$', views.api_flow_details, name = 'api_flow_details'),
 
     url(r'^api/device', views.api_device_get, name = 'api_device_get'),
 

@@ -79,12 +79,27 @@ def flow_details(request, pk):
     try:
         session = Session.objects.get(pk = pk)
 
+        return render(request, 'flow_details.html',
+                      {'experiment': session.experiment, 'session': session, 'flows': {}})
+    except Exception as e:
+        print(e)
+        raise Http404("session does not exist")
+
+@csrf_exempt
+@api_view(['GET'])
+@authentication_classes((TokenAuthentication, SessionAuthentication))
+@permission_classes((IsAuthenticated,))
+def api_flow_details(request, pk):
+    try:
+        session = Session.objects.get(pk = pk)
+
         flows = compute_flow_details(session)
 
         if flows is not None:
-            return render(request, 'flow_details.html',
-                          {'experiment': session.experiment, 'session': session, 'flows': json.dumps(flows.json())})
-        return render(request, 'flow_details.html', {'flows': ''})
+            # return render(request, 'flow_details.html',
+            #               {'experiment': session.experiment, 'session': session, 'flows': json.dumps(flows.json())})
+            return JsonResponse(flows.flows, safe = False)#render(request, 'flow_details.html', {'flows': ''})
+        return JsonResponse({})
     except Exception as e:
         print(e)
         raise Http404("session does not exist")

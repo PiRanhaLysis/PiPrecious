@@ -3,10 +3,9 @@
         <script src="https://cdnjs.cloudflare.com/ajax/libs/handlebars.js/4.0.11/handlebars.min.js"></script>
         <script src="https://d3js.org/d3.v4.min.js"></script>
         <script>
-const dump = JSON.parse({{flows|safe}});
 var previous_row = 'None';
 class Viewer {
-    constructor() {
+    constructor(dump) {
         const _this = this
         this.flow_table = $('#flows');
         this.flow_details = $('#flow_details');
@@ -14,7 +13,8 @@ class Viewer {
         this.analysis_details = $('#analysis_details');
         this.flow_table_tpl = Handlebars.compile($('#flow_table_tpl').html());
         this.flow_details_tpl = Handlebars.compile($('#flow_details_tpl').html());
-        this._dump = {}
+        this._dump = {};
+        this.dump = dump;
         dump.forEach(function(f){
             _this._dump[f.id] = f
         })
@@ -42,7 +42,7 @@ class Viewer {
     }
 
     renderFlowTable(selected_flow){
-        this.flow_table.html(this.flow_table_tpl({data: dump}))
+        this.flow_table.html(this.flow_table_tpl({data: this.dump}))
         const _this = this
         $('.flow_row').click(function(e){
             $('#'+previous_row).removeClass('table-active')
@@ -65,7 +65,7 @@ class AnalysisViewer {
         d3.select(this.dom_node).html('')
     }
     renderDetails(d){
-        $('#analysis_details').html(this.analysis_tpl({data: d}))
+        $('#analysis_details').html(this.analysis_tpl({data: d}).replace(/&amp;lt;/g, '<').replace(/&amp;gt;/g, '>').replace(/&amp;/g, '&').replace(/&quot;/g, '"'))
     }
     render() {
         const _this = this
@@ -182,7 +182,7 @@ class AnalysisViewer {
             .attr("class", "code")
             .attr("text-anchor", "end")
             .text(function(d) {
-                if(d.data.human_readable){
+                if(d.data.human_readable && d.data.text.length > 0){
                     return d.data.text[0].substring(0, 32)
                 }
             });
@@ -443,6 +443,7 @@ class AnalysisViewer {
         <div id="viewer">
             <div id="dump">
                 <div class="pane" id="flows">
+                    <h1>Loading, please wait</h1>
                 </div>
                 <div class="pane" id="flow_details">
                 </div>
@@ -530,7 +531,7 @@ class AnalysisViewer {
         </tbody>
     </table>
     <h5>Content</h5>
-    <pre>{{#each data.text}}{{this}}<br/>{{/each}}</pre>
+    {{#each data.text}}<xmp style="margin:0;padding:0;">{{this}}</xmp>{{/each}}
 </script>
 <script id="flow_details_tpl" type="x-tmpl-mustache">
     <div class="small">
@@ -590,7 +591,9 @@ class AnalysisViewer {
 </script>
 {% endverbatim %}
 <script>
-    const v = new Viewer()
-    v.renderFlowTable()
+    $.getJSON("{% url 'core:api_flow_details' session.pk %}", function(data){
+        const v = new Viewer(data)
+        v.renderFlowTable()
+    })
 </script>
 {% endblock %}
