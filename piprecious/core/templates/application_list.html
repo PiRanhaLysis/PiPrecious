@@ -22,6 +22,7 @@
                                 <!--<li class="">AUID: <code>{{ app.app_uid }}</code></li>-->
                             </ul>
                             <a href="{% url 'admin:core_application_change' app.id %}" class="btn btn-sm btn-purple fa fa-pencil"></a>
+                            <a href="{% url 'core:api_apk_get' app.pk %}" class="btn btn-sm btn-purple fa fa-download"></a>
                         </figcaption>
                     </figure>
                 </div>

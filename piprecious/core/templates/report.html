@@ -52,7 +52,7 @@
                                             <li class="">Creation: <code>{{ experiment.application.created | date:"D d M Y" }}</code></li>
                                         </ul>
                                     </figcaption>
-                                    <a href="{% url 'core:api_apk_get' experiment.application.pk %}" class="text-secondary fa fa-download"></a>
+                                    <a href="{% url 'core:api_apk_get' experiment.application.pk %}" class="btn btn-sm btn-purple fa fa-download"></a>
                                 {% else %}
                                     <span class="text-secondary icon-huge fa fa-times">
                                     </span>

@@ -10,103 +10,106 @@
         {% for e in experiments %}
             <div class="row justify-content-md-center">
                 <div class="col-lg-12">
-                    <div class="alert bg-light">
-                        <h3><code>{{ e.name }}</code></h3>
-                        <div class="row">
-                            <div class="col-lg-3">
-                                <figure class="figure text-center">
-                                    <span class="text-secondary icon-normal fa fa-flask"></span>
-                                    <figcaption class="figure-caption text-truncate">
-                                        <b class="text-primary">{{ e.name|truncatechars_html:20 }}</b>
-                                        <ul class="text-left">
-                                            <li class="">ID: <code class="small">{{e.pk}}</code></li>
-                                            <li class="">Creation: <code>{{ e.created | date:"D d M Y" }}</code></li>
-                                        </ul>
-                                        <div>
-                                            <i class="fa fa-file-alt"></i>
-                                            {% if e.report %}
-                                                <a href="{% url 'core:view_report' e.pk %}#" class="btn btn-sm btn-purple">View report</a>&nbsp;
-                                                <a href="{% url 'core:create_report' e.pk %}" class="btn btn-sm btn-purple">Update report</a>
-                                            {% else %}
-                                                <a href="{% url 'core:create_report' e.pk %}" class="btn btn-sm btn-purple">Create report</a>
-                                            {% endif %}
-                                        </div>
-                                        <br>
-                                        <div>
-                                            <a href="{% url 'admin:core_experiment_change' e.id %}" class="btn btn-sm btn-purple fa fa-pencil"></a>
-                                        </div>
-                                    </figcaption>
-                                </figure>
-                            </div>
-                            <div class="col-lg-3">
-                                <figure class="figure text-center">
-                                    {% if e.smartphone.name.strip %}
-                                        <span class="text-secondary icon-normal fa fa-mobile">
-                                        </span>
+                    <div class="bg-light">
+                        <div class="alert alert-secondary">
+                            <h3><code>{{ e.name }}</code></h3>
+                            <div class="row">
+                                <div class="col-lg-3">
+                                    <figure class="figure text-center">
+                                        <span class="text-secondary icon-normal fa fa-flask"></span>
                                         <figcaption class="figure-caption text-truncate">
-                                            <b class="text-primary">{{ e.smartphone.name|truncatechars_html:20 }}</b>
+                                            <b class="text-primary">{{ e.name|truncatechars_html:20 }}</b>
                                             <ul class="text-left">
-                                                <li class="">Serial: <code>{{ e.smartphone.serial }}</code></li>
-                                                <li class="">Brand: <code>{{ e.smartphone.brand }}</code></li>
-                                                <li class="">Creation: <code>{{ e.smartphone.created | date:"D d M Y" }}</code></li>
+                                                <li class="">ID: <code class="small">{{e.pk}}</code></li>
+                                                <li class="">Creation: <code>{{ e.created | date:"D d M Y" }}</code></li>
                                             </ul>
+                                            <div>
+                                                <i class="fa fa-file-alt"></i>
+                                                {% if e.report %}
+                                                    <a href="{% url 'core:view_report' e.pk %}#" class="btn btn-sm btn-purple">View report</a>&nbsp;
+                                                    <a href="{% url 'core:create_report' e.pk %}" class="btn btn-sm btn-purple">Update report</a>
+                                                {% else %}
+                                                    <a href="{% url 'core:create_report' e.pk %}" class="btn btn-sm btn-purple">Create report</a>
+                                                {% endif %}
+                                            </div>
+                                            <br>
+                                            <div>
+                                                <a href="{% url 'admin:core_experiment_change' e.id %}" class="btn btn-sm btn-purple fa fa-pencil"></a>
+                                            </div>
                                         </figcaption>
-                                    {% else %}
-                                        <span class="text-secondary icon-normal fa fa-times">
-                                        </span>
-                                        <figcaption class="figure-caption text-truncate">
-                                            <b class="text-primary">No smartphone</b>
-                                        </figcaption>
-                                    {% endif %}
-                                </figure>
-                            </div>
-                            <div class="col-lg-3">
-                                <figure class="figure text-center">
-                                    {% if e.application.name.strip %}
-                                        <span class="text-secondary icon-normal fa fa-android">
-                                        </span>
-                                        <figcaption class="figure-caption text-truncate">
-                                            <b class="text-primary">{{ e.application.name|truncatechars_html:20 }}</b>
-                                            <ul class="text-left">
-                                                <li class="">Version: <code>{{ e.application.version_name }}</code></li>
-                                                <li class="">Size: <code>{{ e.application.apk.size|filesizeformat }}</code></li>
-                                                <li class="">Creation: <code>{{ e.application.created | date:"D d M Y" }}</code></li>
-                                            </ul>
-                                        </figcaption>
-                                        <a href="{% url 'core:api_apk_get' e.application.pk %}" class="btn btn-sm btn-purple fa fa-download"></a>
-                                    {% else %}
-                                        <span class="text-secondary icon-normal fa fa-times">
-                                        </span>
-                                        <figcaption class="figure-caption text-truncate">
-                                            <b class="text-primary">No application</b>
-                                        </figcaption>
-                                    {% endif %}
-                                </figure>
-                            </div>
-                            <div class="col-lg-3">
-                                <figure class="figure text-center">
-                                    {% if e.iot_device.name.strip %}
-                                        <span class="text-secondary icon-normal fa fa-bluetooth">
-                                        </span>
-                                        <figcaption class="figure-caption text-truncate">
-                                            <b class="text-primary">{{ e.iot_device.name|truncatechars_html:20 }}</b>
-                                            <ul class="text-left">
-                                                <li class="">Serial: <code>{{ e.iot_device.serial }}</code></li>
-                                                <li class="">Brand: <code>{{ e.iot_device.brand }}</code></li>
-                                                <li class="">Creation: <code>{{ e.iot_device.created | date:"D d M Y" }}</code></li>
-                                            </ul>
-                                        </figcaption>
-                                    {% else %}
-                                        <span class="text-secondary icon-normal fa fa-times">
-                                        </span>
-                                        <figcaption class="figure-caption text-truncate">
-                                            <b class="text-primary">No IoT device</b>
-                                        </figcaption>
-                                    {% endif %}
-                                </figure>
+                                    </figure>
+                                </div>
+                                <div class="col-lg-3">
+                                    <figure class="figure text-center">
+                                        {% if e.smartphone.name.strip %}
+                                            <span class="text-secondary icon-normal fa fa-mobile">
+                                            </span>
+                                            <figcaption class="figure-caption text-truncate">
+                                                <b class="text-primary">{{ e.smartphone.name|truncatechars_html:20 }}</b>
+                                                <ul class="text-left">
+                                                    <li class="">Serial: <code>{{ e.smartphone.serial }}</code></li>
+                                                    <li class="">Brand: <code>{{ e.smartphone.brand }}</code></li>
+                                                    <li class="">Creation: <code>{{ e.smartphone.created | date:"D d M Y" }}</code></li>
+                                                </ul>
+                                            </figcaption>
+                                        {% else %}
+                                            <span class="text-secondary icon-normal fa fa-times">
+                                            </span>
+                                            <figcaption class="figure-caption text-truncate">
+                                                <b class="text-primary">No smartphone</b>
+                                            </figcaption>
+                                        {% endif %}
+                                    </figure>
+                                </div>
+                                <div class="col-lg-3">
+                                    <figure class="figure text-center">
+                                        {% if e.application.name.strip %}
+                                            <span class="text-secondary icon-normal fa fa-android">
+                                            </span>
+                                            <figcaption class="figure-caption text-truncate">
+                                                <b class="text-primary">{{ e.application.name|truncatechars_html:20 }}</b>
+                                                <ul class="text-left">
+                                                    <li class="">Version: <code>{{ e.application.version_name }}</code></li>
+                                                    <li class="">Size: <code>{{ e.application.apk.size|filesizeformat }}</code></li>
+                                                    <li class="">Creation: <code>{{ e.application.created | date:"D d M Y" }}</code></li>
+                                                </ul>
+                                            </figcaption>
+                                            <a href="{% url 'core:api_apk_get' e.application.pk %}" class="btn btn-sm btn-purple fa fa-download"></a>
+                                        {% else %}
+                                            <span class="text-secondary icon-normal fa fa-times">
+                                            </span>
+                                            <figcaption class="figure-caption text-truncate">
+                                                <b class="text-primary">No application</b>
+                                            </figcaption>
+                                        {% endif %}
+                                    </figure>
+                                </div>
+                                <div class="col-lg-3">
+                                    <figure class="figure text-center">
+                                        {% if e.iot_device.name.strip %}
+                                            <span class="text-secondary icon-normal fa fa-bluetooth">
+                                            </span>
+                                            <figcaption class="figure-caption text-truncate">
+                                                <b class="text-primary">{{ e.iot_device.name|truncatechars_html:20 }}</b>
+                                                <ul class="text-left">
+                                                    <li class="">Serial: <code>{{ e.iot_device.serial }}</code></li>
+                                                    <li class="">Brand: <code>{{ e.iot_device.brand }}</code></li>
+                                                    <li class="">Creation: <code>{{ e.iot_device.created | date:"D d M Y" }}</code></li>
+                                                </ul>
+                                            </figcaption>
+                                        {% else %}
+                                            <span class="text-secondary icon-normal fa fa-times">
+                                            </span>
+                                            <figcaption class="figure-caption text-truncate">
+                                                <b class="text-primary">No IoT device</b>
+                                            </figcaption>
+                                        {% endif %}
+                                    </figure>
+                                </div>
                             </div>
                         </div>
                         {% if e.session_set.all %}
+                        <div class="">
                             <table class="table small table-hover">
                                 <thead>
                                     <tr>
@@ -130,7 +133,6 @@
                                                 {% if s.pcap_file.name.strip %}
                                                     <ul class="text-left list-unstyled">
                                                         <li class="">Size: <code>{{ s.pcap_file.size|filesizeformat }}</code></li>
-                                                        <li class="">SHA: <code>{{ s.pcap_file.sha256|truncatechars_html:20 }}</code></li>
                                                         <li class="">Creation: <code>{{ s.pcap_file.created | date:"D d M Y" }}</code></li>
                                                     </ul>
                                                     <a href="{% url 'core:api_pcap' s.pk %}"class="btn btn-sm btn-purple fa fa-download"></a>
@@ -142,7 +144,6 @@
                                                 {% if s.flow_file.name.strip %}
                                                     <ul class="text-left list-unstyled">
                                                         <li class="">Size: <code>{{ s.flow_file.size|filesizeformat }}</code></li>
-                                                        <li class="">SHA: <code>{{ s.flow_file.sha256|truncatechars_html:20 }}</code></li>
                                                         <li class="">Creation: <code>{{ s.flow_file.created | date:"D d M Y" }}</code></li>
                                                     </ul>
                                                     <a href="{% url 'core:flow_details' s.pk %}"class="btn btn-sm btn-purple"><span class="fa fa-eye"></span></a>
@@ -155,7 +156,6 @@
                                                 {% if s.bluetooth_dump.name.strip %}
                                                     <ul class="text-left">
                                                         <li class="">Size: <code>{{ s.bluetooth_dump.size|filesizeformat }}</code></li>
-                                                        <li class="">SHA: <code>{{ s.bluetooth_dump.sha256|truncatechars_html:20 }}</code></li>
                                                         <li class="">Creation: <code>{{ s.bluetooth_dump.created | date:"D d M Y" }}</code></li>
                                                     </ul>
                                                     <a href="{% url 'core:api_bt' s.pk %}"class="btn btn-sm btn-purple fa fa-download"></a>
@@ -167,6 +167,7 @@
                                     {% endfor %}
                                 </tbody>
                             </table>
+                        </div>
                         {% endif %}
                     </div>
                 </div>
