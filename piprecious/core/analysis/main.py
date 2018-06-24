@@ -129,6 +129,15 @@ def compute_flow_details(session):
     return None
 
 
+def get_ip_address(host_or_ip):
+    import socket
+    try:
+        socket.inet_aton(host_or_ip)
+        return host_or_ip
+    except socket.error:
+        return socket.gethostbyname(host_or_ip)
+
+
 def compute_full_report(experiment_id):
     try:
         experiment = Experiment.objects.get(pk = experiment_id)
@@ -156,7 +165,7 @@ def compute_full_report(experiment_id):
             host = get_host_from_headers(f)
             if host not in results:
                 results[host] = {
-                    'ip': f['request']['host'],
+                    'ip': get_ip_address(f['request']['host']),
                     'secure': f['request']['url'].startswith('https'),
                     'rules': {},
                 }
