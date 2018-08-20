@@ -4,7 +4,7 @@ SECRET_KEY = '!ktcqr7o(gv(6uk1iqz&didubab^g!&i)h%f5kn$s91(2jd0nu'
 
 DEBUG = True
 
-ALLOWED_HOSTS = ['localhost', '192.168.1.115', 'mnpi7k3h2env7mef.onion']
+ALLOWED_HOSTS = ['localhost']
 
 DATABASES = {
     'default': {
