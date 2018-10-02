@@ -6,7 +6,7 @@ django-minio-storage==0.2.1
 https://github.com/Exodus-Privacy/exodus-core/releases/download/v1.0.8/exodus_core-1.0.8.tar.gz
 git+https://github.com/PiRanhaLysis/Phorcys.git
 djangorestframework==3.8.0
-pyshark==0.3.7.11
+pyshark==0.4.1
 mitmproxy==3.0.4
 yara-python==3.7.0
 django-jet==1.0.7
