@@ -5,7 +5,7 @@ Ce guide a été testé sur :
 
 ## Étape 1 - Dépendances système
 ```
-sudo apt install -y git virtualenv postgresql-9.6 python3 python3-dev dexdump gcc
+sudo apt install -y git virtualenv postgresql-9.6 python3 python3-dev dexdump gcc protobuf-compiler
 ```
 
 ## Étape 2 - Cloner le projet
