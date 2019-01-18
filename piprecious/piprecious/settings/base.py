@@ -96,3 +96,5 @@ USE_TZ = True
 
 STATIC_URL = '/static/'
 STATIC_ROOT = '/static/'
+
+DATA_UPLOAD_MAX_MEMORY_SIZE = 100 * 1024 * 1024
