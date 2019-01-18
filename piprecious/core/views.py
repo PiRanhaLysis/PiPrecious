@@ -1,4 +1,3 @@
-import mimetypes
 from concurrent.futures.thread import ThreadPoolExecutor
 
 from django.contrib.auth.decorators import login_required
@@ -255,8 +254,7 @@ def api_apk_get(request, pk):
                 file_size += len(chunk)
             try:
                 apk_file.seek(0)
-                content_type = mimetypes.guess_type(str(apk.file))[0]
-                response = HttpResponse(apk_file.read(), content_type = content_type)
+                response = HttpResponse(apk_file.read(), content_type="application/force-download")
                 response['Content-Disposition'] = 'attachment; filename=%s.apk' % pk
                 response['Content-Length'] = file_size
                 return response
@@ -303,8 +301,7 @@ def api_flow(request, pk):
                 file_size += len(chunk)
             try:
                 flow_file.seek(0)
-                content_type = mimetypes.guess_type(str(session.flow_file.file))[0]
-                response = HttpResponse(flow_file.read(), content_type = content_type)
+                response = HttpResponse(flow_file.read(), content_type="application/force-download")
                 response['Content-Disposition'] = 'attachment; filename=%s.flow' % pk
                 response['Content-Length'] = file_size
                 return response
@@ -363,8 +360,7 @@ def api_pcap(request, pk):
                 file_size += len(chunk)
             try:
                 pcap_file.seek(0)
-                content_type = mimetypes.guess_type(str(session.pcap_file.file))[0]
-                response = HttpResponse(pcap_file.read(), content_type = content_type)
+                response = HttpResponse(pcap_file.read(), content_type="application/force-download")
                 response['Content-Disposition'] = 'attachment; filename=%s.pcap' % pk
                 response['Content-Length'] = file_size
                 return response
