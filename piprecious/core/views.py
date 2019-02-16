@@ -397,8 +397,7 @@ def api_bt(request, pk):
                 file_size += len(chunk)
             try:
                 bluetooth_dump.seek(0)
-                content_type = mimetypes.guess_type(str(session.bluetooth_dump.file))[0]
-                response = HttpResponse(bluetooth_dump.read(), content_type = content_type)
+                response = HttpResponse(bluetooth_dump.read(), content_type="application/force-download")
                 response['Content-Disposition'] = 'attachment; filename=%s-bt.pcap' % pk
                 response['Content-Length'] = file_size
                 return response
